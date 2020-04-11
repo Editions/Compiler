@@ -67,9 +67,10 @@ fun_declaration         : type_specifier ID LPAREN params RPAREN compound_stmt
                                 $$ -> child[1] = $6;
                                 type_check(id, $$->type, VOID);
                             }
+                        | compound_stmt {$$ = $1;}
                         ;
 params                  : param_list  { $$ = $1;}
-                        | param  {$$ = $1;}
+                        | VOID  {$$ = new TreeNode();}
                         ;
 param_list              : param_list COMMA param {  YYSTYPE t = $1; 
                                                     while(t->sibling) t = t->sibling;
@@ -82,6 +83,7 @@ param                   : type_specifier ID {   $$ = $1;
                                                 $$->name = id; 
                                                 type_check(id, $$->type, INT);
                                             } 
+                                            
                         | type_specifier ID LBRACKET RBRACKET 
                         {   $$->$1; 
                             $$->name = id;
@@ -89,6 +91,7 @@ param                   : type_specifier ID {   $$ = $1;
                             type_check(id, $$->type, INT);
                         }
                         ;
+
 compound_stmt           : LBRACE local_declarations statement_list RBRACE
                         {   $$ = new TreeNode();
                             $$->child[0] = $1;
@@ -122,27 +125,36 @@ statement_list          : statement_list statement
                         }
                         |   {$$ = NULL;}//empty  /////////////
                         ;
-statement               : expression_stmt  {$$ = $1;}
-                        | compound_stmt    {$$ = $1;}
-                        | selection-stmt   {$$ = $1;}
-                        | iteration_stmt   {$$ = $1;}
-                        | return_stmt      {$$ = $1;}
-                        ;
+
+statement                 : matched_stmt {$$ = $1;}
+                          | unmatched_stmt {$$ = $1;}
 expression_stmt         : expression SEMI { $$ = $1;} //////////////////////////////////////////
                 //        | SEMI///////////////////////////////////
                         ;
-selection-stmt          : IF LPAREN expression RPAREN statement 
-                        {   $$ = new TreeNode();
-                            $$->child[0] = $3;
-                            $$->child[1] = $5;
-                        }
-                        | IF LPAREN expression RPAREN statement ELSE statement
+                   ;
+matched_stmt            : IF LPAREN expression RPAREN matched_stmt ELSE matched_stmt
                         {   $$ = new TreeNode();
                             $$->child[0] = $3;
                             $$->child[1] = $5;
                             $$->child[2] = $7;
                         }
+                        | expression_stmt {$$ = $1;}
+                        | compound_stmt {$$ = $1;}
+                        | iteration_stmt {$$ = $1;}
+                        | return_stmt {$$ = $1;}
                         ;
+unmatched_stmt          : IF LPAREN expression RPAREN statement
+                        {   $$ = new TreeNode();
+                            $$->child[0] = $3;
+                            $$->child[1] = $5;
+                        }
+                        | IF LPAREN expression RPAREN matched_stmt ELSE unmatched_stmt
+                        {   $$ = new TreeNode();
+                            $$->child[0] = $3;
+                            $$->child[1] = $5;
+                            $$->child[2] = $7;
+                        };
+
 iteration_stmt          : WHILE LPAREN expression RPAREN statement
                         {   $$ = new TreeNode();
                             $$->child[0] = $3;
@@ -152,7 +164,7 @@ iteration_stmt          : WHILE LPAREN expression RPAREN statement
 return_stmt             : RETURN SEMI { $$ = new TreeNode();}
                         | RETURN expression SEMI { $$ = new TreeNode(); $$->child[0] = $1;}
                         ;
-expression         : var ASSIGN expression 
+expression              : var ASSIGN expression 
                         {   $$ = new TreeNode();
                             $$->child[0] = $1;
                             $$->child[1] = $3;
