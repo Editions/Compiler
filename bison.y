@@ -94,15 +94,10 @@ compound_stmt           : LBRACE local_declarations statement_list RBRACE
                         }
                         ;
 local_declarations      : local_declarations var_declaration 
-                        {   if($1 == NULL){
-                                $$ = $1;
-                            }
-                            elseYYSTYPE t = $1;
-                            while(t->sibling) t=t->sibling;
-                            t->sibling = $2;
-
+                        {   
+                            // 写到这里了。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。
                         }
-                        |    { $$ = NULL; }//empty /////////////////
+                        |    //empty /////////////////
                         ;
 statement_list          : statement_list statement
                         | empty  /////////////
