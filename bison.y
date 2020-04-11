@@ -3,25 +3,27 @@
 
 #define YYSTYPE TreeNode*
 static TreeNode* root;
-}
+%}
 %start program // 开始符号
 
-%union{
-    int num;   // 属性值
-    char* id;  // 标识符
-    int type;  // +-*/ (0123)
-}
+//%union{
+  //  int num;   // 属性值
+   // char* id;  // 标识符
+    //int type;  // +-*/ //(0123)
+//}
 %token VOID INT
 %token IF ELSE
 %token WHILE
 %token RETURN
 %token ASSIGN
-%token SEMI COMMA,
+%token SEMI COMMA
 %token LBRACE RBRACE LBRACKET RBRACKET
 %token LCOMM RCOMM 
 
-%token <id>ID 
-%token <num>NUM
+%token ID
+%token NUM
+//%token <id>ID 
+//%token <num>NUM
 
 // 指导书标明无结合性
 // %left '<=' '<' '>' '>=' '==' '!='  
@@ -41,7 +43,7 @@ declaration_list        : declaration_list declaration  { YYSTYPE t = $1;
                                                           $$ = t;
                                                         }
                         | declaration  {$$ = $1;}          
-                       idid
+                        ;//idid
 declaration             : var_declaration  {$$ = $1;}
                         | fun_declaration  {$$ = $1;}
                         ;
@@ -94,71 +96,131 @@ compound_stmt           : LBRACE local_declarations statement_list RBRACE
                         }
                         ;
 local_declarations      : local_declarations var_declaration 
-                        {   
-                            // 写到这里了。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。
+                        {   if($1 == NULL)
+                                $$ = $2;
+                            else
+                            {
+                                YYSTYPE t = $1;
+                                while(t->sibling) t = t->sibling;
+                                t->sibling = $2;
+                                $$ = t;
+                            }
+
                         }
-                        |    //empty /////////////////
+                        |    {$$ = NULL;}//empty /////////////////
                         ;
 statement_list          : statement_list statement
-                        | empty  /////////////
+                        {   if($1 == NULL) 
+                                $$ = $2;
+                            else
+                            {
+                                YYSTYPE t = $1;
+                                while(t->sibling) t = t->sibling;
+                                t->sibling = $2;
+                                $$ = t;
+                            }
+                        }
+                        |   {$$ = NULL;}//empty  /////////////
                         ;
-statement               : expression_stmt
-                        | compound_stmt
-                        | selection-stmt
-                        | iteration_stmt
-                        | return_stmt
+statement               : expression_stmt  {$$ = $1;}
+                        | compound_stmt    {$$ = $1;}
+                        | selection-stmt   {$$ = $1;}
+                        | iteration_stmt   {$$ = $1;}
+                        | return_stmt      {$$ = $1;}
                         ;
-expression_stmt         : expression_stmt SEMI
-                        | SEMI
+expression_stmt         : expression SEMI { $$ = $1;} //////////////////////////////////////////
+                //        | SEMI///////////////////////////////////
                         ;
-selection-stmt          : IF LPAREN expression RPAREN statement
-                        | IF LPAREN expression RPAREN ELSE statement
+selection-stmt          : IF LPAREN expression RPAREN statement 
+                        {   $$ = new TreeNode();
+                            $$->child[0] = $3;
+                            $$->child[1] = $5;
+                        }
+                        | IF LPAREN expression RPAREN statement ELSE statement
+                        {   $$ = new TreeNode();
+                            $$->child[0] = $3;
+                            $$->child[1] = $5;
+                            $$->child[2] = $7;
+                        }
                         ;
 iteration_stmt          : WHILE LPAREN expression RPAREN statement
+                        {   $$ = new TreeNode();
+                            $$->child[0] = $3;
+                            $$->child[1] = $5;
+                        }
                         ;
-return_stmt             : RETURN SEMI
-                        | RETURN expression SEMI
+return_stmt             : RETURN SEMI { $$ = new TreeNode();}
+                        | RETURN expression SEMI { $$ = new TreeNode(); $$->child[0] = $1;}
                         ;
-expression_stmt         : var ASSIGN expression
-                        | simple_expression
+expression         : var ASSIGN expression 
+                        {   $$ = new TreeNode();
+                            $$->child[0] = $1;
+                            $$->child[1] = $3;
+                        }
+                        | simple_expression { $$ = $1;}
                         ;
-var                     : ID
+var                     : ID {$$ = new TreeNode(); $$->name = id, $$->value = value;}
                         | ID LBRACKET expression RBRACKET
+                        {   $$ = new TreeNode();
+                            $$->id = ID;
+                            $$->child[0] = $3;
+                            ////$$->value = $3->value;   /////////////////////////////////////////////
+                        }
                         ;
 simple_expression       : additive_expression relop additive_expression
-                        | additive_expression
+                        {   $$ = $2; /////
+                            $$->child[0] = $1;
+                            $$->child[1] = $3;
+                        }
+                        | additive_expression {$$ = $1;}
                         ;
-relop                   : LESS
-                        | LESSEQUAL
-                        | MORE
-                        | MOREEQUAL
-                        | EQUAL
-                        | NOTEQUAL
+relop                   : LESS  { $$ = new TreeNode();}
+                        | LESSEQUAL { $$ = new TreeNode();}
+                        | MORE { $$ = new TreeNode();}
+                        | MOREEQUAL { $$ = new TreeNode();}
+                        | EQUAL { $$ = new TreeNode();}
+                        | NOTEQUAL { $$ = new TreeNode();}
                         ;
-additive_expression     : additive_expression addop term
-                        | term
+additive_expression     : additive_expression addop term 
+                        {   $$ = $2; 
+                            $$->child[0] = $1;
+                            $$->child[1] = $3;
+                        }
+                        | term {$$ = $1;}
                         ;
-addop                   : PLUS
-                        | MINUS
+addop                   : PLUS {$$ = new TreeNode();}
+                        | MINUS {$$ = new TreeNode();}
                         ;
 term                    : term mulop factor 
-                        | factor   
+                        {   $$ = $2;
+                            $$->child[0] = $1;
+                            $$->child[1] = $3;
+                        }
+                        | factor  {$$ = $1;}
                         ;
-mulop                   : MULTI
-                        | DIVIDE
+mulop                   : MULTI {$$ = new TreeNode();}
+                        | DIVIDE {$$ = new TreeNode();}
                         ;
-factor                  : LPAREN expression RPAREN
-                        | var
-                        | call
-                        | NUM
+factor                  : LPAREN expression RPAREN {$$ = $2;}
+                        | var {$$ = $1;}
+                        | call {$$ = $1;}
+                        | NUM {$$ = $1;}
                         ;
-call                    : ID LPAREN args RPAREN
+call                    : ID LPAREN args RPAREN 
+                        {   $$ = new TreeNode();
+                            $$->child[0] =ID;
+                            $$->child[1] = $3;
+                        }
                         ;
-arg                     : arg_list
-                        | empty //////////
+args                     : arg_list {$$ = $1;}
+                        | {$$ = NULL; } //empty //////////
                         ;
-arg_list                : arg_list COMMA expression
-                        | expression
+arg_list                : arg_list COMMA expression 
+                        {   YYSTYPE t = $1;
+                            while(t->sibling) t = t->sibling;
+                            t->sibling = $3;
+                        }
+                        | expression {$$ = $1;}
                         ;
                   
 

@@ -24,8 +24,9 @@ typedef enum ValType
 struct TreeNode
 {
     struct TreeNode *child[MAX_CHILD];
-    TreeNode* sibling;
+    struct TreeNode* sibling;
     char* name; //变量名
+    int value;
     int array_len = 0;  //数组长度，负数为函数参数
     ValType type; // 变量类型
 };
