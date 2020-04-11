@@ -1,10 +1,12 @@
 #pragma once
 
+#define MAX_CHILD 5
 static char* id;
 static int value;
 extern FILE* fd;
 
-typedef enum TokenType{
+typedef enum TokenType
+{
     END_OF_FILE, 
     PLUS,MINUS,MULTI,DIVIDE,
     LESS,LESSEQUAL,MORE,MOREEQUAL,EQUAL,NOTEQUAL,
@@ -15,4 +17,16 @@ typedef enum TokenType{
     ID,NUM
 }TokenType;
 
+typedef enum ValType
+{
+    INT, VOID
+}ValType;
+struct TreeNode
+{
+    struct TreeNode *child[MAX_CHILD];
+    TreeNode* sibling;
+    char* name; //变量名
+    int array_len = 0;  //数组长度，负数为函数参数
+    ValType type; // 变量类型
+};
 enum TokenType getToken();

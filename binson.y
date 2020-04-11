@@ -2,13 +2,19 @@
 %{
 #include"globals.h"
 %}
-%token NUM
+%token PLUS,MINUS,MULTI,DIVIDE,
+%token LESS,LESSEQUAL,MORE,MOREEQUAL,EQUAL,NOTEQUAL,
+%token ASSIGN,
+%token SEMI,COMMA,
+%token LPAREN,RPAREN,LBRACE,RBRACE,LBRACKET,RBRACKET,LCOMM,RCOMM,
+%token IF,ELSE,INT,RETURN,VOID,WHILE,
+%token ID,NUM
 %%
 
-program              : declaration_list
+program              : declaration_list                         {$$ = $1;}
                      ;
-declaration_list     : declaration_list declaration
-                     | declaration
+declaration_list     : declaration_list declaration             {$$ = S1;}
+                     | declaration                              
                      ;
 declaration          : var_declaration
                      | fun_declaration

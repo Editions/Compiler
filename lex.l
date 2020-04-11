@@ -53,7 +53,7 @@ while  {return WHILE;}
 
 enum TokenType getToken()
 {
-    yyin = fp;
+    yyin = fd;
     int type = yylex();
     if(type == ID) id = yytext;
     else if(type == NUM) value = atoi(yytext);

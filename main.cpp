@@ -13,7 +13,7 @@ int main()
     enum TokenType a;
     while(a = getToken())
     {
-        cout<<a<<endl;
+        cout<<TokenType(a)<<endl;
     }
     //fclose(fd);
     system("pause");
