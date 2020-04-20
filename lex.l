@@ -2,8 +2,11 @@
 %{
 #include <stdlib.h>
 #include"globals.h"
-// char* id;
-// int value;
+#include"bison.tab.h"
+char id[10];
+int value;
+int lineno;
+void comment(); 
 // typedef enum TokenType{
 //     PLUS,MINUS,MULTI,DIVIDE,
 //     LESS,LESSEQUAL,MORE,MOREEQUAL,EQUAL,NOTEQUAL,
@@ -15,6 +18,8 @@
 // }TokenType;
 %}
 
+newline     [\n\r]
+whitespace  [ \t]+
 letter [a-zA-Z]
 digit [0-9]
 %%
@@ -43,15 +48,22 @@ while  {return WHILE;}
 "]"    {return RBRACKET;}
 "{"    {return LBRACE;}
 "}"    {return RBRACE;}
-"/*"   {return LCOMM;}
-"*/"   {return RCOMM;}
-<<EOF>>     return END_OF_FILE;
-{letter}|{letter}* {return ID;}
-{digit}|{digit}*   {return NUM;}
+"/*"   {comment();}
+{newline}       {}
+{whitespace}    {}
+{letter}|{letter}* { sstrcpy(id, yytext); return ID;}
+{digit}|{digit}*   { value = atoi(yytext);return NUM;}
 
 %%
-
-enum TokenType getToken()
+void comment()
+{
+    while(1){
+        while(yyinput()!='*');
+        if(yyinput() == '/') return;
+    }
+}
+/*
+TokenType getToken()
 {
     yyin = fd;
     int type = yylex();
@@ -59,3 +71,4 @@ enum TokenType getToken()
     else if(type == NUM) value = atoi(yytext);
     return TokenType(type);
 }
+*/
