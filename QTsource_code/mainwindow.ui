@@ -111,7 +111,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>PushButton</string>
+     <string>运行</string>
     </property>
    </widget>
   </widget>
